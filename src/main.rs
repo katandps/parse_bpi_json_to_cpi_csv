@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, BufReader};
+use std::io::Write;
 
 use serde;
 use serde_json;
@@ -32,7 +33,9 @@ fn main() {
         dictionary.insert(title.clone(), Song { version: version.to_string(), genre: genre.to_string(), artist: artist.to_string() });
     }
 
-    println!("バージョン,タイトル,ジャンル,アーティスト,プレー回数,BEGINNER 難易度,BEGINNER EXスコア,BEGINNER PGreat,BEGINNER Great,BEGINNER ミスカウント,BEGINNER クリアタイプ,BEGINNER DJ LEVEL,NORMAL 難易度,NORMAL EXスコア,NORMAL PGreat,NORMAL Great,NORMAL ミスカウント,NORMAL クリアタイプ,NORMAL DJ LEVEL,HYPER 難易度,HYPER EXスコア,HYPER PGreat,HYPER Great,HYPER ミスカウント,HYPER クリアタイプ,HYPER DJ LEVEL,ANOTHER 難易度,ANOTHER EXスコア,ANOTHER PGreat,ANOTHER Great,ANOTHER ミスカウント,ANOTHER クリアタイプ,ANOTHER DJ LEVEL,LEGGENDARIA 難易度,LEGGENDARIA EXスコア,LEGGENDARIA PGreat,LEGGENDARIA Great,LEGGENDARIA ミスカウント,LEGGENDARIA クリアタイプ,LEGGENDARIA DJ LEVEL,最終プレー日時");
+    let mut out = String::new();
+
+    out.push_str(format!("バージョン,タイトル,ジャンル,アーティスト,プレー回数,BEGINNER 難易度,BEGINNER EXスコア,BEGINNER PGreat,BEGINNER Great,BEGINNER ミスカウント,BEGINNER クリアタイプ,BEGINNER DJ LEVEL,NORMAL 難易度,NORMAL EXスコア,NORMAL PGreat,NORMAL Great,NORMAL ミスカウント,NORMAL クリアタイプ,NORMAL DJ LEVEL,HYPER 難易度,HYPER EXスコア,HYPER PGreat,HYPER Great,HYPER ミスカウント,HYPER クリアタイプ,HYPER DJ LEVEL,ANOTHER 難易度,ANOTHER EXスコア,ANOTHER PGreat,ANOTHER Great,ANOTHER ミスカウント,ANOTHER クリアタイプ,ANOTHER DJ LEVEL,LEGGENDARIA 難易度,LEGGENDARIA EXスコア,LEGGENDARIA PGreat,LEGGENDARIA Great,LEGGENDARIA ミスカウント,LEGGENDARIA クリアタイプ,LEGGENDARIA DJ LEVEL,最終プレー日時\n").as_ref());
     for re in res {
         let name = &re.title;
         if !dictionary.contains_key(name) { continue; }
@@ -43,17 +46,20 @@ fn main() {
 
         if re.difficulty == "hyper" {
             let s = format!("12,0,0,0,---,{},---,12,0,0,0,---,===,---,12,0,0,0,---,===,---,2019-10-16 10:02", clear(re.clear));
-            println! {"{},{},{},{},0,12,0,0,0,---,FULLCOMBO CLEAR,---,12,0,0,0,---,FULLCOMBO CLEAR,---,{}", version, name, genre, artist, s}
+            out.push_str(format!("{},{},{},{},0,12,0,0,0,---,FULLCOMBO CLEAR,---,12,0,0,0,---,FULLCOMBO CLEAR,---,{}\n", version, name, genre, artist, s).as_ref());
         }
         if re.difficulty == "another" {
             let s = format!("12,0,0,0,---,===,---,12,0,0,0,---,{},---,12,0,0,0,---,===,---,2019-10-16 10:02", clear(re.clear));
-            println! {"{},{},{},{},0,12,0,0,0,---,FULLCOMBO CLEAR,---,12,0,0,0,---,FULLCOMBO CLEAR,---,{}", version, name, genre, artist, s}
+            out.push_str(format!("{},{},{},{},0,12,0,0,0,---,FULLCOMBO CLEAR,---,12,0,0,0,---,FULLCOMBO CLEAR,---,{}\n", version, name, genre, artist, s).as_ref());
         }
         if re.difficulty == "leggendaria" {
             let s = format!("12,0,0,0,---,===,---,12,0,0,0,---,===,---,12,0,0,0,---,{},---,2019-10-16 10:02", clear(re.clear));
-            println! {"{},{},{},{},0,12,0,0,0,---,FULLCOMBO CLEAR,---,12,0,0,0,---,FULLCOMBO CLEAR,---,{}", version, name, genre, artist, s}
+            out.push_str(format!("{},{},{},{},0,12,0,0,0,---,FULLCOMBO CLEAR,---,12,0,0,0,---,FULLCOMBO CLEAR,---,{}\n", version, name, genre, artist, s).as_ref());
         }
     }
+    let mut out_file = File::create("out.csv").unwrap();
+    write!(out_file, "{}", out);
+    out_file.flush();
 }
 
 fn clear(int: i32) -> &'static str {
